@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.pyc
+
+# Virtual Environment
+venv/
+env/
+.env
+
+# Large Files & Datasets
+*.zip
+*.mp4
+*.avi
+*.db
+yolov8x.pt
+
+# Datasets
+Helmet/
+Helmet_fixed/
+Helmet_v2/
+NumberPlate/
+NumberPlate2/
+Seatbelt/
+
+# Working Directories
+runs/
+tmp/
+evidence/
+
+# OS Files
+.DS_Store

@@ -1,0 +1,8 @@
+path: E:\Programming\Flipkart_ML_Challenge_2026\Round 2\dataset\PS-3\Helmet_fixed
+train: train/images
+val: valid/images
+test: test/images
+nc: 2
+names:
+- Helmet
+- No-Helmet

@@ -1,0 +1,70 @@
+Automated Photo Identification and Classification for Traffic Violations Using Computer Vision
+Overview: You should submit a unique and innovative idea that addresses the stated challenge. Your idea should be practical, clearly explained, and capable of solving a real-world problem. You may present it in the form of a concept note, prototype proposal, or solution framework.With the increasing deployment of traffic surveillance cameras and automated monitoring systems, large volumes of traffic images are generated every day. Manual inspection of these images to identify traffic violations is labor-intensive, time-consuming, and prone to inconsistencies. An intelligent system capable of automatically analyzing photographic evidence can significantly improve the efficiency and accuracy of traffic law enforcement.
+
+The objective of this project is to develop a computer vision–based solution that can automatically process traffic images, detect vehicles and road users, identify traffic violations, classify the type of violation, and generate annotated evidence for further review. The system should be robust to varying environmental conditions, traffic densities, and image qualities while maintaining high detection accuracy and scalability.
+
+Tasks
+
+Image Preprocessing
+
+Enhance image quality and normalize inputs.
+
+Handle challenges such as low light, rain, shadows, and motion blur.
+
+Vehicle and Road User Detection
+
+Detect and localize vehicles, riders, drivers, and pedestrians.
+
+Classify different vehicle categories.
+
+Traffic Violation Detection
+
+Identify violations from images, including:
+
+Helmet non-compliance
+
+Seatbelt non-compliance
+
+Triple riding
+
+Wrong-side driving
+
+Stop-line violation
+
+Red-light violation
+
+Illegal parking
+
+Violation Classification
+
+Categorize detected violations into predefined classes.
+
+Assign confidence scores to predictions.
+
+License Plate Recognition
+
+Detect number plates.
+
+Extract registration details using OCR techniques.
+
+Evidence Generation
+
+Produce annotated images highlighting violations.
+
+Store violation metadata and timestamps.
+
+Analytics and Reporting
+
+Generate violation statistics and trends.
+
+Provide searchable records and summary reports.
+
+Performance Evaluation
+
+Evaluate using Accuracy, Precision, Recall, F1-score, and mAP.
+
+Assess computational efficiency and scalability.
+
+Expected Outcome
+
+A scalable AI-based traffic image analysis system capable of automatically identifying, classifying, and documenting traffic violations from photographic evidence, thereby reducing manual effort and improving the effectiveness of traffic monitoring and enforcement.
