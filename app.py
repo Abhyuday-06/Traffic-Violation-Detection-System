@@ -597,18 +597,30 @@ def process_uploaded_image(
     )
     progress_bar.progress(1.0)
 
-    # For single images there is no departure event, so fall back to the
-    # legacy per-violation challan path so evidence is always generated.
-    active_alert_keys: set[tuple[int, str]] = set()
-    for violation in result.get("violations", []):
-        alert_key = (int(violation.get("track_id", -1)), str(violation.get("type", "")))
-        if alert_key in active_alert_keys:
-            continue
-        active_alert_keys.add(alert_key)
-        alert = register_violation_evidence(violation, frame, config)
-        st.session_state.live_alerts.append(alert)
+    # For single images there is no departure event, so force-flush all
+    # active incidents immediately so challans are written to the database.
+    final_challans = engine.flush_all_incidents()
+    for challan in final_challans:
+        msg = (
+            f"[CHALLAN #{challan['id']:06d}] "
+            f"Plate: {challan['license_plate']} | "
+            f"{challan['violation_type']} | "
+            f"PDF: {Path(challan['pdf_path']).name}"
+        )
+        st.session_state.live_alerts.append(msg)
 
-    # Show any consolidated challans that already fired (edge case for images)
+    # Also surface any violations that were detected but didn't make it into
+    # an incident (e.g. first-frame detections with no crop).
+    for violation in result.get("violations", []):
+        tid = violation.get("track_id", "?")
+        vtype = violation.get("type", "Violation")
+        conf = violation.get("confidence")
+        conf_str = f" ({conf*100:.0f}%)" if conf is not None else ""
+        alert_msg = f"[DETECTED] ID:{tid} — {vtype}{conf_str}"
+        if alert_msg not in st.session_state.live_alerts:
+            st.session_state.live_alerts.append(alert_msg)
+
+    # Also show consolidated challans emitted by the engine during process_frame
     for challan in result.get("consolidated_challans", []):
         msg = (
             f"[CONSOLIDATED CHALLAN #{challan['id']:06d}] "
@@ -616,7 +628,8 @@ def process_uploaded_image(
             f"{challan['violation_type']} | "
             f"PDF: {Path(challan['pdf_path']).name}"
         )
-        st.session_state.live_alerts.append(msg)
+        if msg not in st.session_state.live_alerts:
+            st.session_state.live_alerts.append(msg)
 
     frame_placeholder.image(annotated_frame, channels="BGR", use_container_width=True)
     feed_placeholder.empty()
