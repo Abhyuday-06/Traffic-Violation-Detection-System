@@ -819,28 +819,25 @@ def render_evidence_processing(config: dict[str, Any]) -> None:
         else:
             st.warning("Could not extract a reference frame from the video for ROI calibration.")
 
-    left_column, right_column = st.columns([3.2, 1.1], gap="large")
-    with left_column:
-        frame_placeholder = st.empty()
-        if image_mode:
-            if decoded_image is None:
-                st.error("Unable to decode the uploaded image.")
-                return
-            frame_placeholder.image(decoded_image, channels="BGR", use_container_width=True)
+    # Single-column layout — no side-by-side columns means zero layout
+    # reflow when content updates. Feed lives BELOW the player.
+    frame_placeholder = st.empty()
+    if image_mode:
+        if decoded_image is None:
+            st.error("Unable to decode the uploaded image.")
+            return
+        frame_placeholder.image(decoded_image, channels="BGR", use_container_width=True)
 
-        progress_placeholder = st.empty()
-        metric_columns = st.columns(4)
-        button_label = "Analyze Image" if image_mode else "Start Video Analysis"
-        start_analysis = st.button(button_label, type="primary", use_container_width=True)
-        debug_placeholder = st.empty()  # Dev Mode panel sits directly below the player
+    progress_placeholder = st.empty()
+    metric_columns = st.columns(4)
+    button_label = "Analyze Image" if image_mode else "Start Video Analysis"
+    start_analysis = st.button(button_label, type="primary", use_container_width=True)
+    debug_placeholder = st.empty()
 
-    with right_column:
-        st.subheader("Live Activity")
-        feed_placeholder = st.empty()
-        # Initial render goes into the placeholder directly so updates later
-        # can overwrite the same slot without calling .empty() (which causes shake).
-        with feed_placeholder:
-            render_activity_feed(st.session_state.live_alerts)
+    st.subheader("Live Activity")
+    feed_placeholder = st.empty()
+    with feed_placeholder:
+        render_activity_feed(st.session_state.live_alerts)
 
     if not start_analysis:
         return
