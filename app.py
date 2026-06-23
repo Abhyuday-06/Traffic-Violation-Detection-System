@@ -680,6 +680,7 @@ def process_uploaded_video(
     dev_mode = config.get("dev_mode", False)
 
     try:
+        prev_alert_count = len(st.session_state.live_alerts)
         while capture.isOpened():
             ok, frame = capture.read()
             if not ok:
@@ -725,9 +726,14 @@ def process_uploaded_video(
                 st.session_state.live_alerts.append(msg)
 
             frame_placeholder.image(annotated_frame, channels="BGR", use_container_width=True)
-            feed_placeholder.empty()
-            with feed_placeholder.container():
-                render_activity_feed(st.session_state.live_alerts)
+
+            # Only re-render the feed when new alerts arrive to prevent UI shaking
+            current_alert_count = len(st.session_state.live_alerts)
+            if current_alert_count != prev_alert_count:
+                feed_placeholder.empty()
+                with feed_placeholder.container():
+                    render_activity_feed(st.session_state.live_alerts)
+                prev_alert_count = current_alert_count
 
             if dev_mode and debug_payload:
                 debug_placeholder.empty()
