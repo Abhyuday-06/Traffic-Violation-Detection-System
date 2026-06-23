@@ -143,9 +143,11 @@ class TrafficEnforcementEngine:
         # ------------------------------------------------------------------
         # Consolidated incident tracking
         # active_incidents[track_id] accumulates per-vehicle violations until
-        # the vehicle leaves the frame (absent for > INCIDENT_TTL_FRAMES).
+        # Challan is committed to DB after the vehicle departs (absent for
+        # > INCIDENT_TTL_FRAMES) OR when flush_all_incidents() is called at end
+        # of video.  Lowered to 3 frames so short clips get challans quickly.
         # ------------------------------------------------------------------
-        self.INCIDENT_TTL_FRAMES: int = 30
+        self.INCIDENT_TTL_FRAMES: int = 3
         self.active_incidents: dict[int, dict[str, Any]] = {}
         self.incident_last_seen: dict[int, int] = {}  # track_id -> last frame_index
 

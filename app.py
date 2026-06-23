@@ -38,6 +38,11 @@ def configure_page() -> None:
         """
         <style>
             .block-container { padding-top: 1.2rem; padding-bottom: 1.5rem; }
+            /* Anchor image container height so columns never reflow during updates */
+            [data-testid="stImage"] > img {
+                display: block;
+                min-height: 240px;
+            }
             .activity-feed {
                 max-height: 560px;
                 overflow-y: auto;
