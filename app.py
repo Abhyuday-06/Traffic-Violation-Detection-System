@@ -725,9 +725,22 @@ def process_uploaded_video(
                 )
                 st.session_state.live_alerts.append(msg)
 
-            frame_placeholder.image(annotated_frame, channels="BGR", use_container_width=True)
+            # Throttle UI updates to every 5 processed frames to prevent layout jitter.
+            # The inference still runs every frame; only the display is throttled.
+            if processed_frames % 5 == 0 or processed_frames == 1:
+                frame_placeholder.image(annotated_frame, channels="BGR", use_container_width=True)
 
-            # Only re-render the feed when new alerts arrive to prevent UI shaking
+                elapsed = max(time.time() - run_started_at, 1e-6)
+                current_fps = processed_frames / elapsed
+                metric_columns[0].metric("Frame", f"{frame_number:,}")
+                metric_columns[1].metric("Processed", f"{processed_frames:,}")
+                metric_columns[2].metric("FPS", f"{current_fps:.2f}")
+                metric_columns[3].metric("Alerts", f"{len(st.session_state.live_alerts):,}")
+
+                if total_frames > 0:
+                    progress_bar.progress(min(frame_number / total_frames, 1.0))
+
+            # Only re-render the live feed when new alerts arrive
             current_alert_count = len(st.session_state.live_alerts)
             if current_alert_count != prev_alert_count:
                 feed_placeholder.empty()
@@ -735,20 +748,10 @@ def process_uploaded_video(
                     render_activity_feed(st.session_state.live_alerts)
                 prev_alert_count = current_alert_count
 
-            if dev_mode and debug_payload:
+            if dev_mode and debug_payload and processed_frames % 5 == 0:
                 debug_placeholder.empty()
                 with debug_placeholder.container():
                     render_debug_expander(debug_payload, frame_number=frame_number)
-
-            elapsed = max(time.time() - run_started_at, 1e-6)
-            current_fps = processed_frames / elapsed
-            metric_columns[0].metric("Frame", f"{frame_number:,}")
-            metric_columns[1].metric("Processed", f"{processed_frames:,}")
-            metric_columns[2].metric("FPS", f"{current_fps:.2f}")
-            metric_columns[3].metric("Alerts", f"{len(st.session_state.live_alerts):,}")
-
-            if total_frames > 0:
-                progress_bar.progress(min(frame_number / total_frames, 1.0))
 
         final_challans = engine.flush_all_incidents()
         for challan in final_challans:
