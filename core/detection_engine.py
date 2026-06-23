@@ -371,6 +371,7 @@ class TrafficEnforcementEngine:
         active_track_ids: set[int],
         plate_text_by_track: dict[int, str],
         db_path: Any = None,
+        force_all: bool = False,
     ) -> list[dict[str, Any]]:
         """
         For every tracked vehicle that has been absent for > INCIDENT_TTL_FRAMES,
@@ -382,9 +383,8 @@ class TrafficEnforcementEngine:
 
         departed = [
             tid for tid, last_seen in self.incident_last_seen.items()
-            if tid not in active_track_ids
-            and (self.frame_index - last_seen) > self.INCIDENT_TTL_FRAMES
-            and tid in self.active_incidents
+            if tid in self.active_incidents
+            and (force_all or (tid not in active_track_ids and (self.frame_index - last_seen) > self.INCIDENT_TTL_FRAMES))
         ]
 
         challans: list[dict[str, Any]] = []
@@ -423,6 +423,18 @@ class TrafficEnforcementEngine:
                 self.incident_last_seen.pop(tid, None)
 
         return challans
+
+    def flush_all_incidents(self, db_path: Any = None) -> list[dict[str, Any]]:
+        """
+        Force-flush all active incidents and generate consolidated challans
+        for any vehicles still being tracked. Use this at the end of a video stream.
+        """
+        return self._flush_departed_incidents(
+            active_track_ids=set(),
+            plate_text_by_track={},
+            db_path=db_path,
+            force_all=True,
+        )
 
     # ------------------------------------------------------------------
     # Geometric Triple Riding detection

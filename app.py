@@ -731,6 +731,19 @@ def process_uploaded_video(
             if total_frames > 0:
                 progress_bar.progress(min(frame_number / total_frames, 1.0))
 
+        final_challans = engine.flush_all_incidents()
+        for challan in final_challans:
+            msg = (
+                f"[CHALLAN #{challan['id']:06d}] "
+                f"Plate: {challan['license_plate']} | "
+                f"{challan['violation_type']} | "
+                f"PDF: {Path(challan['pdf_path']).name}"
+            )
+            st.session_state.live_alerts.append(msg)
+            
+        with feed_placeholder.container():
+            render_activity_feed(st.session_state.live_alerts)
+
         progress_bar.progress(1.0)
         st.success("Video analysis completed.")
     finally:
