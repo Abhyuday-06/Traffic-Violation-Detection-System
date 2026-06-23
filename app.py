@@ -43,7 +43,13 @@ def configure_page() -> None:
                 display: block;
                 min-height: 240px;
             }
+            /* Lock the right sidebar column so it never collapses during placeholder updates.
+               This is the primary fix for the layout-shake / reflow bug. */
+            [data-testid="column"]:last-child {
+                min-height: 600px;
+            }
             .activity-feed {
+                min-height: 560px;
                 max-height: 560px;
                 overflow-y: auto;
                 border: 1px solid rgba(49, 51, 63, 0.18);
@@ -637,8 +643,9 @@ def process_uploaded_image(
             st.session_state.live_alerts.append(msg)
 
     frame_placeholder.image(annotated_frame, channels="BGR", use_container_width=True)
-    feed_placeholder.empty()
-    with feed_placeholder.container():
+    # Write activity feed in-place — never call .empty() as that collapses the
+    # right column momentarily and causes visible layout shake.
+    with feed_placeholder:
         render_activity_feed(st.session_state.live_alerts)
 
     tracked_objects = result.get("tracked_objects", {})
@@ -745,11 +752,12 @@ def process_uploaded_video(
                 if total_frames > 0:
                     progress_bar.progress(min(frame_number / total_frames, 1.0))
 
-            # Only re-render the live feed when new alerts arrive
+            # Only re-render the live feed when new alerts arrive.
+            # Write in-place — never call .empty() as that collapses the
+            # right column momentarily and causes visible layout shake.
             current_alert_count = len(st.session_state.live_alerts)
             if current_alert_count != prev_alert_count:
-                feed_placeholder.empty()
-                with feed_placeholder.container():
+                with feed_placeholder:
                     render_activity_feed(st.session_state.live_alerts)
                 prev_alert_count = current_alert_count
 
@@ -768,7 +776,7 @@ def process_uploaded_video(
             )
             st.session_state.live_alerts.append(msg)
             
-        with feed_placeholder.container():
+        with feed_placeholder:
             render_activity_feed(st.session_state.live_alerts)
 
         progress_bar.progress(1.0)
@@ -829,7 +837,10 @@ def render_evidence_processing(config: dict[str, Any]) -> None:
     with right_column:
         st.subheader("Live Activity")
         feed_placeholder = st.empty()
-        render_activity_feed(st.session_state.live_alerts)
+        # Initial render goes into the placeholder directly so updates later
+        # can overwrite the same slot without calling .empty() (which causes shake).
+        with feed_placeholder:
+            render_activity_feed(st.session_state.live_alerts)
 
     if not start_analysis:
         return
